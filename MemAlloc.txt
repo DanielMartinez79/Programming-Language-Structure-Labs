@@ -1,0 +1,202 @@
+#include <stdio.h>
+#include <stdlib.h>
+static struct Block *free_head;
+void my_initialize_heap(int);
+void* my_alloc(int);
+void my_free(void*);
+
+typedef struct Block {
+    int block_size;
+    struct Block *next_block;
+
+} Block;
+const int overhead = sizeof(struct Block); //16
+const int vsize = sizeof(void*); //8
+
+int main()
+{
+
+    //int x = 6;
+    //int *y = &x;
+    //printf("%p\n", &y);
+    //printf("%p\n", &x);
+    //printf("%p\n",&x-1);
+    //printf("%p\n", &x+1);
+
+
+    my_initialize_heap(1024);
+    //printf("%d\n", free_head);
+    //printf("%d\n", free_head->block_size);
+
+
+
+    //Branch 1
+    /*/
+    struct Block *addr1 = my_alloc(sizeof(int));
+    //printf("%d\n", my_alloc(sizeof(int)));
+    printf("%d\n", addr1);
+    //printf("returned");
+    my_free(addr1);
+    struct Block *addr2 = my_alloc(sizeof(int));
+    printf("%d\n", addr2);
+    //printf("%d\n", free_head);
+    //my_free(addr1);
+    //struct Block *addr2 = my_alloc(sizeof(int));
+    //printf("%d\n", addr2);
+    //printf("%d\n", free_head);
+    */
+
+    //Branch 2
+    /*
+    struct Block *addr1 = my_alloc(sizeof(int));
+    printf("%d\n", addr1);
+    struct Block *addr2 = my_alloc(sizeof(int));
+    printf("%d\n", addr2);
+    */
+    //Branch 3
+    /*
+    Block *addr1 = my_alloc(sizeof(int));
+    printf("%d\n", addr1);
+
+    Block *addr2 = my_alloc(sizeof(int));
+    printf("%d\n", addr2);
+
+    Block *addr3 = my_alloc(sizeof(int));
+    printf("%d\n", addr3);
+
+    my_free(addr2);
+
+    Block *addr4 = my_alloc(sizeof(double));
+    printf("%d\n", addr4);
+
+    Block *addr5 = my_alloc(sizeof(int));
+    printf("%d\n", addr5);
+
+    */
+    //Branch 4
+    /*
+    Block *addr1 = my_alloc(sizeof(int));
+    printf("%d\n", addr1);
+
+    Block *addr2 = my_alloc(sizeof(int));
+    printf("%d\n", addr2);
+    */
+
+    //Branch 5
+    Block *addr1 = my_alloc(100*sizeof(int));
+    printf("%d\n", addr1);
+    Block *addr2 = my_alloc(sizeof(int));
+    printf("%d\n", addr2);
+    my_free(addr1);
+
+    printf("%d\n", addr2);
+
+    //
+
+
+
+
+
+
+
+    return 0;
+
+
+}
+
+void my_initialize_heap(int size){
+
+    free_head = malloc(size);
+
+    //Block buffer = {size, NULL};
+    free_head->block_size = size;
+    free_head->next_block = NULL;
+
+    return 0;
+}
+
+void* my_alloc(int size){
+
+    void* data = 0;
+    struct Block *predecessor;
+    struct Block *current = free_head;
+    printf("%d%s\n", current->block_size, " is size of current block");
+    int truesize = size + overhead + (size % vsize); //size needed for request
+    printf("%d%s\n", truesize, " is size of request");
+
+
+
+    //printf("%d\n", current->block_size);
+    int cont = 1;
+    while (cont == 1){
+        if ( current -> block_size >= truesize){
+            if ((current -> block_size >= size ) && ((current->block_size - size) >= (overhead + vsize))){ //split
+
+
+                Block *newFree= (void*) current + truesize;
+                newFree->block_size = current->block_size - truesize;
+                printf("%d%s\n", newFree->block_size, "is the size of the new block");
+                //*(Block *)newFree = (Block){current->block_size - truesize, NULL};
+
+                if (current == free_head) {
+                    //free_head->block_size = current->block_size - truesize;
+                    ((Block*)newFree)->next_block = free_head->next_block;
+                    free_head = (Block*)newFree;
+                    //printf("%d\n", free_head);
+                    //predecessor -> next_block = newFree;
+
+                } else {
+                    //printf("%s", "print2\n");
+
+                    predecessor-> next_block = (Block*)newFree;
+                    ((Block*)newFree) ->next_block = current->next_block;
+                }
+                current ->block_size = size;
+
+                data = (void*) current + overhead;
+                //printf("%d\n", newFree -> block_size);
+            //free_head->
+            //printf("returning");
+
+            } else{ //don't split
+                predecessor->next_block = current -> next_block;
+                data = (void*) current + overhead;
+            }
+
+            return data;
+        } else {
+            //printf("%s", "print3\n");
+
+            if (current->next_block == NULL){
+                cont = 0;
+            } else {
+                predecessor = current;
+                current = current -> next_block;
+            }
+        }
+    }
+    return 0;
+
+
+
+}
+
+void my_free(void *data){
+    struct Block *blockInfo;
+    int blockInfoAddr = data - overhead;
+
+    //printf("%d%s\n", data, " is address of data");
+    blockInfo= (void*) blockInfoAddr;
+    //printf("%d%s\n", blockInfoAddr, " is address of blockInfo");
+
+    Block *temp;
+    blockInfo -> next_block = free_head;
+    free_head = blockInfo;
+    //free_head -> next_block = temp;
+    free_head -> block_size = blockInfo->block_size + (blockInfo->block_size % vsize) + overhead;
+    printf("%d%s\n", free_head->block_size, " is the size of new free head");
+
+
+
+
+}
