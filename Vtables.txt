@@ -1,0 +1,169 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+
+typedef struct Employee{
+    void** vtable;
+    int age;
+
+} Employee;
+
+typedef struct HourlyEmployee {
+    void** vtable;
+    int age;
+    double hourly_rate;
+    double hours;
+
+} HourlyEmployee;
+
+typedef struct CommissionEmployee {
+    void** vtable;
+    int age;
+    double sales_amount;
+
+} CommissionEmployee;
+
+typedef struct SeniorSalesman {
+    void** vtable;
+    int age;
+    double sales_amount;
+
+} SeniorSalesman;
+
+
+void Speak_Hourly(Employee*);
+void Speak_Commission(Employee*);
+double GetPay_Hourly(Employee*);
+double GetPay_Commission(Employee*);
+double GetPay_Salesman(Employee*);
+void Construct_Hourly(HourlyEmployee*);
+void Construct_Commission(CommissionEmployee*);
+void Construct_Salesman(SeniorSalesman*);
+void* Vtable_Hourly[2] = {Speak_Hourly, GetPay_Hourly};
+void* Vtable_Commission[2] = {Speak_Commission, GetPay_Commission};
+void* Vtable_Salesman[2] = {Speak_Commission, GetPay_Salesman};
+
+int main()
+{
+
+    Employee *emp;
+    HourlyEmployee *hEmp;
+    CommissionEmployee *cEmp;
+    SeniorSalesman *sEmp;
+    printf("Choose an Employee type:\n1.Hourly\n2.Commission\n3.Senior Salesman\n");
+    int choice;
+    scanf("%d", &choice);
+    printf("How old is the employee?\n");
+    int age;
+    scanf("%d", &age);
+    switch(choice) {
+
+        case 1:
+
+            hEmp = malloc(sizeof(HourlyEmployee));
+            Construct_Hourly(hEmp);
+            hEmp->age = age;
+            printf("What is their pay rate?\n");
+            double pay;
+            scanf("%lf", &pay);
+            hEmp->hourly_rate = pay;
+            printf("How many hours?\n");
+            double hours;
+            scanf("%lf", &hours);
+            hEmp->hours = hours;
+            emp = (Employee*) hEmp;
+
+
+            break;
+
+
+        case 2:
+            cEmp = malloc(sizeof(CommissionEmployee));
+            Construct_Commission(cEmp);
+            cEmp->age = age;
+
+            printf("Amount of sales:\n");
+            double sales1;
+            scanf("%lf", &sales1);
+            cEmp->sales_amount = sales1;
+            emp = (Employee*)cEmp;
+
+            break;
+
+        case 3:
+            sEmp = malloc(sizeof(SeniorSalesman));
+            Construct_Salesman(sEmp);
+            sEmp->age = age;
+
+            printf("Amount of sales:\n");
+            double sales2;
+            scanf("%lf", &sales2);
+            sEmp->sales_amount = sales2;
+            emp = (Employee*)sEmp;
+            break;
+    }
+    ((void(*)(Employee*))emp->vtable[0])((Employee *)emp);
+    double make = ((double(*)(Employee*))emp->vtable[1])((Employee *)emp);
+
+    printf("This employee makes %f\n", make );
+
+    free(emp);
+    return 0;
+}
+
+void Speak_Hourly(Employee *emp){
+    HourlyEmployee *hEmp = (HourlyEmployee*) emp;
+    printf("I work for %f dollars per hour\n", hEmp->hourly_rate );
+}
+
+void Speak_Commission(Employee *emp){
+    CommissionEmployee *cEmp = (CommissionEmployee*) emp;
+    printf("I make commission on %f dollars in sales!\n", cEmp->sales_amount );
+}
+
+
+double GetPay_Hourly(Employee *emp){
+    HourlyEmployee *hEmp = (HourlyEmployee*) emp;
+    printf("This should print %f\n", (hEmp->hourly_rate * hEmp->hours));
+    return (hEmp->hourly_rate * hEmp->hours);
+}
+
+double GetPay_Commission(Employee *emp){
+    CommissionEmployee *cEmp = (CommissionEmployee*) emp;
+    printf("This should print %f\n", cEmp->sales_amount * .1);
+
+    return cEmp->sales_amount * .1 + 40000;
+
+}
+
+double GetPay_Salesman(Employee *emp){
+    SeniorSalesman *sEmp = (SeniorSalesman*) emp;
+    double pay = sEmp->sales_amount * .2 + 50000;
+    if (sEmp->age >= 40){
+        pay = pay + sEmp->sales_amount * .05;
+    }
+    return pay;
+
+}
+
+void Construct_Hourly(HourlyEmployee *emp){
+    emp->age = 0;
+    emp->hourly_rate = 0;
+    emp->hours = 0;
+    emp->vtable = Vtable_Hourly;
+
+}
+
+void Construct_Commission(CommissionEmployee *emp){
+    emp->age = 0;
+    emp->sales_amount = 0;
+    emp->vtable = Vtable_Commission;
+
+}
+
+void Construct_Salesman(SeniorSalesman *emp){
+    emp->age = 0;
+    emp->sales_amount = 0;
+    emp->vtable = Vtable_Salesman;
+
+}
